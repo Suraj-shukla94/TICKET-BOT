@@ -95,12 +95,12 @@ client.on(Events.InteractionCreate, async interaction => {
         const embed = new EmbedBuilder()
           .setTitle("IL TICKET MANAGER")
           .setDescription(
-            `Need help with your server? Get server-related support from our team!\n\n**REACT TO THE EMOJI BELOW FOR TICKET CREATION**`
+            `Welcome to our support center! Whether you need assistance with server configuration, technical issues, or have general inquiries, our dedicated support team is here to help.\n\n**How to Get Support:**\nSimply react with the emoji below to open a new support ticket. Our team will respond as soon as possible to assist you.\n\n**Note:** Please provide detailed information about your issue for faster resolution.\n\n━━━━━━━━━━━━━━━━━━━\n\n👇 **CLICK THE EMOJI BELOW TO CREATE A TICKET** 👇`
           )
           .setColor(0xff0000)
           .setThumbnail(interaction.guild.iconURL())
           .setFooter({
-            text: "Ticket System",
+            text: "IL Support System • Powered by Support Team",
             iconURL: interaction.guild.iconURL()
           });
 
