@@ -224,10 +224,64 @@ client.on(Events.InteractionCreate, async interaction => {
         return interaction.reply({ content: "❌ Staff only", flags: 64 });
 
       const channelId = interaction.channel.id;
-      await interaction.reply({ content: "🗑️ Channel will be deleted in 5 seconds...", flags: 64 });
+      const channelName = interaction.channel.name;
+      await interaction.reply({ content: "🗑️ Creating transcript... Channel will be deleted in 5 seconds", flags: 64 });
+      
       setTimeout(async () => {
-        const channel = await interaction.client.channels.fetch(channelId).catch(() => null);
-        if (channel) await channel.delete().catch(() => null);
+        try {
+          const channel = await interaction.client.channels.fetch(channelId).catch(() => null);
+          if (!channel) return;
+
+          // Fetch all messages from the channel
+          let allMessages = [];
+          let lastMessageId = null;
+          
+          while (true) {
+            const options = { limit: 100 };
+            if (lastMessageId) options.before = lastMessageId;
+            
+            const messages = await channel.messages.fetch(options).catch(() => null);
+            if (!messages || messages.size === 0) break;
+            
+            allMessages.push(...messages.values());
+            lastMessageId = messages.last().id;
+          }
+
+          // Create transcript
+          let transcript = `📋 TICKET TRANSCRIPT: ${channelName}\n`;
+          transcript += `📅 Date: ${new Date().toLocaleString()}\n`;
+          transcript += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+
+          allMessages.reverse().forEach(msg => {
+            const author = msg.author.username;
+            const time = msg.createdAt.toLocaleTimeString();
+            const content = msg.content || "[No text content]";
+            transcript += `[${time}] ${author}: ${content}\n`;
+          });
+
+          transcript += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+          transcript += `Total Messages: ${allMessages.length}`;
+
+          // Send transcript to log channel
+          if (LOG_CHANNEL_ID) {
+            const logChannel = interaction.client.channels.cache.get(LOG_CHANNEL_ID);
+            if (logChannel) {
+              await logChannel.send({
+                content: `**Ticket Transcript**`,
+                files: [{
+                  attachment: Buffer.from(transcript),
+                  name: `${channelName}_transcript.txt`
+                }]
+              }).catch(() => {});
+            }
+          }
+
+          // Delete the channel
+          await channel.delete().catch(() => null);
+          console.log(`✅ Ticket ${channelName} deleted with transcript saved`);
+        } catch (error) {
+          console.error(`❌ Error creating transcript:`, error);
+        }
       }, 5000);
     }
   }
