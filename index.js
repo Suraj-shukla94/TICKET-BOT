@@ -100,7 +100,7 @@ client.on(Events.InteractionCreate, async interaction => {
           .setColor(0xff0000)
           .setThumbnail(interaction.guild.iconURL())
           .setFooter({
-            text: "IL Support System • Powered by Support Team",
+            text: "IL SUPPORT SYSTEM",
             iconURL: interaction.guild.iconURL()
           });
 
