@@ -91,26 +91,32 @@ client.on(Events.InteractionCreate, async interaction => {
       if (interaction.user.id !== OWNER_ID)
         return interaction.reply({ content: "❌ Not allowed", flags: 64 });
 
-      const embed = new EmbedBuilder()
-        .setTitle("🎫 Ticket Support")
-        .setDescription(
-          `<:${TICKET_EMOJI.name}:${TICKET_EMOJI.id}> React with the emoji below to open a ticket`
-        )
-        .setColor(0xff0000)
-        .setThumbnail(interaction.guild.iconURL())
-        .setFooter({
-          text: "Ticket System",
-          iconURL: interaction.guild.iconURL()
+      try {
+        const embed = new EmbedBuilder()
+          .setTitle("🎫 Ticket Support")
+          .setDescription(
+            `<:${TICKET_EMOJI.name}:${TICKET_EMOJI.id}> React with the emoji below to open a ticket`
+          )
+          .setColor(0xff0000)
+          .setThumbnail(interaction.guild.iconURL())
+          .setFooter({
+            text: "Ticket System",
+            iconURL: interaction.guild.iconURL()
+          });
+
+        const msg = await interaction.channel.send({ embeds: [embed] });
+        PANEL_MESSAGE_ID = msg.id;
+        console.log(`✅ Panel created! Message ID: ${PANEL_MESSAGE_ID}`);
+
+        await msg.react(`<:${TICKET_EMOJI.name}:${TICKET_EMOJI.id}>`).catch(err => {
+          console.error(`Failed to react: ${err}`);
         });
 
-      const msg = await interaction.channel.send({ embeds: [embed] });
-      PANEL_MESSAGE_ID = msg.id;
-
-      await msg.react(`<:${TICKET_EMOJI.name}:${TICKET_EMOJI.id}>`).catch(err => {
-        console.error(`Failed to react: ${err}`);
-      });
-
-      return interaction.reply({ content: "✅ Ticket panel created", flags: 64 });
+        return interaction.reply({ content: "✅ Ticket panel created", flags: 64 });
+      } catch (err) {
+        console.error(`❌ Setup error:`, err);
+        return interaction.reply({ content: "❌ Failed to create panel", flags: 64 });
+      }
     }
 
     /* ROLE MANAGEMENT */
