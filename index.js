@@ -89,7 +89,7 @@ client.on(Events.InteractionCreate, async interaction => {
     /* SETUP PANEL */
     if (interaction.commandName === "setup") {
       if (interaction.user.id !== OWNER_ID)
-        return interaction.reply({ content: "❌ Not allowed", ephemeral: true });
+        return interaction.reply({ content: "❌ Not allowed", flags: 64 });
 
       const embed = new EmbedBuilder()
         .setTitle("🎫 Ticket Support")
@@ -108,39 +108,39 @@ client.on(Events.InteractionCreate, async interaction => {
 
       await msg.react(`${TICKET_EMOJI.name}:${TICKET_EMOJI.id}`);
 
-      return interaction.reply({ content: "✅ Ticket panel created", ephemeral: true });
+      return interaction.reply({ content: "✅ Ticket panel created", flags: 64 });
     }
 
     /* ROLE MANAGEMENT */
     if (interaction.commandName === "ticket-role") {
       if (interaction.user.id !== OWNER_ID)
-        return interaction.reply({ content: "❌ Not allowed", ephemeral: true });
+        return interaction.reply({ content: "❌ Not allowed", flags: 64 });
 
       const role = interaction.options.getRole("role");
 
       if (interaction.options.getSubcommand() === "add") {
         ticketRoles.add(role.id);
-        return interaction.reply({ content: `✅ Added ${role}`, ephemeral: true });
+        return interaction.reply({ content: `✅ Added ${role}`, flags: 64 });
       }
 
       if (interaction.options.getSubcommand() === "remove") {
         ticketRoles.delete(role.id);
-        return interaction.reply({ content: `❌ Removed ${role}`, ephemeral: true });
+        return interaction.reply({ content: `❌ Removed ${role}`, flags: 64 });
       }
 
       if (interaction.options.getSubcommand() === "list") {
         const list = [...ticketRoles].map(r => `<@&${r}>`).join("\n") || "No roles";
-        return interaction.reply({ content: `📜 Ticket Roles:\n${list}`, ephemeral: true });
+        return interaction.reply({ content: `📜 Ticket Roles:\n${list}`, flags: 64 });
       }
     }
 
     /* SET LOG CHANNEL */
     if (interaction.commandName === "set-log") {
       if (interaction.user.id !== OWNER_ID)
-        return interaction.reply({ content: "❌ Not allowed", ephemeral: true });
+        return interaction.reply({ content: "❌ Not allowed", flags: 64 });
 
       LOG_CHANNEL_ID = interaction.options.getChannel("channel").id;
-      return interaction.reply({ content: "✅ Log channel set", ephemeral: true });
+      return interaction.reply({ content: "✅ Log channel set", flags: 64 });
     }
   }
 
@@ -156,7 +156,7 @@ client.on(Events.InteractionCreate, async interaction => {
 
     if (interaction.customId === "claim") {
       if (!isStaff)
-        return interaction.reply({ content: "❌ Staff only", ephemeral: true });
+        return interaction.reply({ content: "❌ Staff only", flags: 64 });
 
       data.claimed = interaction.user.id;
 
@@ -175,7 +175,7 @@ client.on(Events.InteractionCreate, async interaction => {
 
     if (interaction.customId === "close") {
       if (!data.claimed)
-        return interaction.reply({ content: "❌ Ticket not claimed", ephemeral: true });
+        return interaction.reply({ content: "❌ Ticket not claimed", flags: 64 });
 
       await interaction.channel.permissionOverwrites.edit(
         interaction.guild.id,
@@ -201,7 +201,7 @@ client.on(Events.InteractionCreate, async interaction => {
 
     if (interaction.customId === "reopen") {
       if (!isStaff)
-        return interaction.reply({ content: "❌ Staff only", ephemeral: true });
+        return interaction.reply({ content: "❌ Staff only", flags: 64 });
 
       await interaction.channel.permissionOverwrites.edit(
         interaction.guild.id,
@@ -213,9 +213,14 @@ client.on(Events.InteractionCreate, async interaction => {
 
     if (interaction.customId === "delete") {
       if (!isStaff)
-        return interaction.reply({ content: "❌ Staff only", ephemeral: true });
+        return interaction.reply({ content: "❌ Staff only", flags: 64 });
 
-      setTimeout(() => interaction.channel.delete(), 5000);
+      const channelId = interaction.channel.id;
+      await interaction.reply({ content: "🗑️ Channel will be deleted in 5 seconds...", flags: 64 });
+      setTimeout(async () => {
+        const channel = await interaction.client.channels.fetch(channelId).catch(() => null);
+        if (channel) await channel.delete().catch(() => null);
+      }, 5000);
     }
   }
 });
