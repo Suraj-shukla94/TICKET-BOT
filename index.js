@@ -290,6 +290,8 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
       components: [row]
     });
 
+    await reaction.users.remove(user.id).catch(() => {});
+
     if (LOG_CHANNEL_ID) {
       const log = guild.channels.cache.get(LOG_CHANNEL_ID);
       if (log)
