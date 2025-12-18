@@ -93,9 +93,9 @@ client.on(Events.InteractionCreate, async interaction => {
 
       try {
         const embed = new EmbedBuilder()
-          .setTitle("🎫 Ticket Support")
+          .setTitle("🎫 SERVER SUPPORT TICKET SYSTEM")
           .setDescription(
-            `<:${TICKET_EMOJI.name}:${TICKET_EMOJI.id}> React with the emoji below to open a ticket`
+            `${`<:${TICKET_EMOJI.name}:${TICKET_EMOJI.id}>`}\n\nNeed help with your server? Get server-related support from our team!\n\n**REACT TO THE EMOJI BELOW FOR TICKET CREATION**`
           )
           .setColor(0xff0000)
           .setThumbnail(interaction.guild.iconURL())
