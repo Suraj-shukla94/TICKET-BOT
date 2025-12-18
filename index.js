@@ -106,7 +106,9 @@ client.on(Events.InteractionCreate, async interaction => {
       const msg = await interaction.channel.send({ embeds: [embed] });
       PANEL_MESSAGE_ID = msg.id;
 
-      await msg.react(`${TICKET_EMOJI.name}:${TICKET_EMOJI.id}`);
+      await msg.react(`<:${TICKET_EMOJI.name}:${TICKET_EMOJI.id}>`).catch(err => {
+        console.error(`Failed to react: ${err}`);
+      });
 
       return interaction.reply({ content: "✅ Ticket panel created", flags: 64 });
     }
@@ -230,63 +232,73 @@ client.on(Events.InteractionCreate, async interaction => {
 client.on(Events.MessageReactionAdd, async (reaction, user) => {
   if (user.bot) return;
 
-  if (reaction.partial) await reaction.fetch();
-  if (reaction.message.partial) await reaction.message.fetch();
+  try {
+    if (reaction.partial) await reaction.fetch();
+    if (reaction.message.partial) await reaction.message.fetch();
 
-  if (reaction.message.id !== PANEL_MESSAGE_ID) return;
-  if (reaction.emoji.id !== TICKET_EMOJI.id) return;
+    console.log(`Reaction detected: emoji.id=${reaction.emoji.id}, PANEL=${PANEL_MESSAGE_ID}, msg=${reaction.message.id}`);
 
-  const guild = reaction.message.guild;
-  const parent = reaction.message.channel.parentId;
+    if (reaction.message.id !== PANEL_MESSAGE_ID) return;
+    if (reaction.emoji.id !== TICKET_EMOJI.id) return;
 
-  ticketCount++;
+    console.log(`✅ Matched! Creating ticket for ${user.tag}`);
 
-  const overwrites = [
-    { id: guild.id, deny: [PermissionsBitField.Flags.ViewChannel] },
-    {
-      id: user.id,
-      allow: [
-        PermissionsBitField.Flags.ViewChannel,
-        PermissionsBitField.Flags.SendMessages
-      ]
+    const guild = reaction.message.guild;
+    const parent = reaction.message.channel.parentId;
+
+    ticketCount++;
+
+    const overwrites = [
+      { id: guild.id, deny: [PermissionsBitField.Flags.ViewChannel] },
+      {
+        id: user.id,
+        allow: [
+          PermissionsBitField.Flags.ViewChannel,
+          PermissionsBitField.Flags.SendMessages
+        ]
+      }
+    ];
+
+    ticketRoles.forEach(r =>
+      overwrites.push({
+        id: r,
+        allow: [
+          PermissionsBitField.Flags.ViewChannel,
+          PermissionsBitField.Flags.SendMessages
+        ]
+      })
+    );
+
+    const channel = await guild.channels.create({
+      name: `ticket-${ticketCount}`,
+      type: ChannelType.GuildText,
+      parent,
+      permissionOverwrites: overwrites
+    });
+
+    tickets.set(channel.id, { ownerId: user.id, claimed: null });
+
+    const row = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId("claim")
+        .setLabel("Claim")
+        .setStyle(ButtonStyle.Primary)
+    );
+
+    await channel.send({
+      content: `👋 <@${user.id}>`,
+      components: [row]
+    });
+
+    if (LOG_CHANNEL_ID) {
+      const log = guild.channels.cache.get(LOG_CHANNEL_ID);
+      if (log)
+        log.send(`📩 Ticket created by ${user.tag} → ${channel}`);
     }
-  ];
 
-  ticketRoles.forEach(r =>
-    overwrites.push({
-      id: r,
-      allow: [
-        PermissionsBitField.Flags.ViewChannel,
-        PermissionsBitField.Flags.SendMessages
-      ]
-    })
-  );
-
-  const channel = await guild.channels.create({
-    name: `ticket-${ticketCount}`,
-    type: ChannelType.GuildText,
-    parent,
-    permissionOverwrites: overwrites
-  });
-
-  tickets.set(channel.id, { ownerId: user.id, claimed: null });
-
-  const row = new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId("claim")
-      .setLabel("Claim")
-      .setStyle(ButtonStyle.Primary)
-  );
-
-  await channel.send({
-    content: `👋 <@${user.id}>`,
-    components: [row]
-  });
-
-  if (LOG_CHANNEL_ID) {
-    const log = guild.channels.cache.get(LOG_CHANNEL_ID);
-    if (log)
-      log.send(`📩 Ticket created by ${user.tag} → ${channel}`);
+    console.log(`✅ Ticket #${ticketCount} created successfully`);
+  } catch (error) {
+    console.error(`❌ Error creating ticket:`, error);
   }
 });
 
