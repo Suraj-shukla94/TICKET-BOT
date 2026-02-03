@@ -92,17 +92,16 @@ client.on(Events.InteractionCreate, async interaction => {
         return interaction.reply({ content: "❌ Not allowed", flags: 64 });
 
       try {
-        const LOGO_URL = "https://cdn.discordapp.com/attachments/1150374169188499477/1467839522002833409/file_00000000a17c720ba2513ef5a2960dbe.png?ex=6981d795&is=69808615&hm=0b105b259fa713e8038ba783c8b6f3a818476fd11bcc1a3fd2fd6be9c9c97a0b&";
         const embed = new EmbedBuilder()
-          .setTitle("IL TICKET MANAGER")
+          .setTitle("RL TICKET MANAGER")
           .setDescription(
             `Welcome to our support center! Whether you need assistance with server configuration, technical issues, or have general inquiries, our dedicated support team is here to help.\n\n**How to Get Support:**\nSimply react with the emoji below to open a new support ticket. Our team will respond as soon as possible to assist you.\n\n**Note:** Please provide detailed information about your issue for faster resolution.\n\n━━━━━━━━━━━━━━━━━━━\n\n<:admin:1450357775681978393> **CLICK THE EMOJI BELOW TO CREATE A TICKET** <:admin:1450357775681978393>`
           )
           .setColor(0xff0000)
-          .setThumbnail(LOGO_URL)
+          .setThumbnail(interaction.guild.iconURL())
           .setFooter({
-            text: "IL SUPPORT SYSTEM",
-            iconURL: LOGO_URL
+            text: "RL SUPPORT SYSTEM",
+            iconURL: interaction.guild.iconURL()
           });
 
         const msg = await interaction.channel.send({ embeds: [embed] });
